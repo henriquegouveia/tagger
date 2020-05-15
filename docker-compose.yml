@@ -1,0 +1,30 @@
+nginx:
+    build: ./nginx
+    links:
+        - tagger1:tagger1
+        - tagger2:tagger2
+        - tagger3:tagger3
+    ports:
+        - "80:80"
+tagger1:
+    build: ./tagger
+    links:
+        - redis
+    ports:
+        - "5000"
+tagger2:
+    build: ./tagger
+    links:
+        - redis
+    ports:
+        - "5000"
+tagger3:
+    build: ./tagger
+    links:
+        - redis
+    ports:
+        - "5000"
+redis:
+    image: redis
+    ports:
+        - "6379"

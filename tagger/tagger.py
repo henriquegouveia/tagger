@@ -1,4 +1,5 @@
 import nl_core_news_sm
+import redis
 from spacy.symbols import NOUN, VERB
 from flask import Flask, request
 from flask_restful import Resource, Api
@@ -8,6 +9,12 @@ from flask import Response
 
 app = Flask(__name__)
 api = Api(app)
+
+client = redis.Redis(db=0, host='redis', port='6379')
+
+def count_tags_occurrences_by_product(tag, productId, language):
+    key = "%s:%s:%s" % (language, productId, tag)
+    client.incr(key)
 
 def extract_tag(text):
 		nouns = []
@@ -22,8 +29,15 @@ def extract_tag(text):
 class Tagger(Resource):
 	@api.representation('application/json')
 	def post(self):
-		text = request.json['text']
-		nouns = extract_tag(text)
+		review = request.json['review']
+		productId = request.json['productId']
+		reviewId = request.json['reviewId']
+		language = request.json['language']
+        
+		nouns = extract_tag(review)
+		for noun in nouns:
+			count_tags_occurrences_by_product(noun, productId, language)
+
 		response = jsonify(nouns)
 		return response
 
